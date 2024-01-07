@@ -67,7 +67,7 @@ public class Test extends LinearOpMode {
         drivingMotors[0].setDirection(DcMotor.Direction.REVERSE);
         drivingMotors[3].setDirection(DcMotor.Direction.REVERSE);
 
-        Float computedDistance = distance * feet;
+        float computedDistance = distance * feet;
 
         while (computedDistance > 1) {
             for (DcMotor i : drivingMotors){
@@ -82,7 +82,7 @@ public class Test extends LinearOpMode {
         drivingMotors[0].setDirection(DcMotor.Direction.FORWARD);
         drivingMotors[3].setDirection(DcMotor.Direction.FORWARD);
 
-        Float computedAngle = angle * degrees;
+        float computedAngle = angle * degrees;
 
         while (computedAngle > 1) {
             for (DcMotor i : drivingMotors){
@@ -102,6 +102,8 @@ public class Test extends LinearOpMode {
      * 2: arm up
      * 3: arm down
      */
+    
+    /*
     private Float armPos(float lastPos, float goalPos) {
         Float current;
         Float goal;
@@ -134,9 +136,6 @@ public class Test extends LinearOpMode {
         current = 0f;
         clawMotor.setPower(current);
 
-        // Rotates the claw
-        clawRotServo.setPosition(clawTarget);
-
         // If picking up or dropping, opens the claw
         if ((clawTarget == 2) || (clawTarget == 3)) {
             Double end = time.seconds() + 5;
@@ -146,6 +145,7 @@ public class Test extends LinearOpMode {
             clawCloseServo.setPower(-1);
         }
     }
+    */
 
     // Code Running ------------------------------------------------------
     @Override
@@ -157,8 +157,8 @@ public class Test extends LinearOpMode {
         drivingMotors[3] = hardwareMap.get(DcMotor.class, "motor_br");
 
         clawMotor = hardwareMap.get(DcMotor.class, "motor_arm");
-        clawRotServo = hardwareMap.get(Servo.class, "claw_rot");
-        clawCloseServo = hardwareMap.get(CRServo.class, "claw_close");
+        clawRotServo = hardwareMap.get(Servo.class, "wrist_rot");
+        clawCloseServo = hardwareMap.get(CRServo.class, "claw_rot");
 
         /*
         camServo = hardwareMap.get(CRServo.class, "camera");
@@ -187,18 +187,17 @@ public class Test extends LinearOpMode {
         */
 
         // Set to starting positions -------------------------------------
+        clawRotServo.setPosition(0.94f);
 
         // Ready to start ------------------------------------------------
-        Float factor = 0.5f;
-
         telemetry.addData(">", "Ready to start");
         waitForStart();
         time.reset();
 
         while (opModeIsActive()){
-
             // Output any debug or other info to controller
             telemetry.addData("Time", time.toString());
+            telemetry.addData("Pos", clawRotServo.getPosition());
             telemetry.update();
         }
     }
