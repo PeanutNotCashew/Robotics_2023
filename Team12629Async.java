@@ -38,8 +38,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 @TeleOp
 public class Test extends LinearOpMode {
     // Distance conversion
-    Float degrees = 8667f/90f;
-    Float feet = 7555f;
+    Float degrees = 8225f/90f;
+    Float cm = 4842f/9f;
     // Wheel Init
     private DcMotor[] drivingMotors = new DcMotor[4];
     // Claw Init
@@ -65,9 +65,9 @@ public class Test extends LinearOpMode {
 
     private void forward(float distance){
         drivingMotors[0].setDirection(DcMotor.Direction.REVERSE);
-        drivingMotors[3].setDirection(DcMotor.Direction.REVERSE);
+        drivingMotors[2].setDirection(DcMotor.Direction.REVERSE);
 
-        float computedDistance = distance * feet;
+        float computedDistance = distance * cm;
 
         while (computedDistance > 1) {
             for (DcMotor i : drivingMotors){
@@ -78,9 +78,10 @@ public class Test extends LinearOpMode {
         halt();
     }
 
+    // Positive to go right
     private void rotate(float angle){
         drivingMotors[0].setDirection(DcMotor.Direction.FORWARD);
-        drivingMotors[3].setDirection(DcMotor.Direction.FORWARD);
+        drivingMotors[2].setDirection(DcMotor.Direction.FORWARD);
 
         float computedAngle = angle * degrees;
 
@@ -187,18 +188,15 @@ public class Test extends LinearOpMode {
         */
 
         // Set to starting positions -------------------------------------
-        clawRotServo.setPosition(0.94f);
+        //clawRotServo.setPosition(0.94f);
 
         // Ready to start ------------------------------------------------
         telemetry.addData(">", "Ready to start");
         waitForStart();
         time.reset();
 
-        while (opModeIsActive()){
-            // Output any debug or other info to controller
-            telemetry.addData("Time", time.toString());
-            telemetry.addData("Pos", clawRotServo.getPosition());
-            telemetry.update();
+        if (opModeIsActive()){
+            forward(10);
         }
     }
 }
