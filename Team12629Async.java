@@ -38,8 +38,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 @TeleOp
 public class Test extends LinearOpMode {
     // Distance conversion
-    Float degrees = 8225f/90f;
-    Float cm = 4842f/9f;
+    Float degrees = 315f;
+    Float feet = 15500f;
     // Wheel Init
     private DcMotor[] drivingMotors = new DcMotor[4];
     // Claw Init
@@ -48,8 +48,6 @@ public class Test extends LinearOpMode {
     private CRServo clawCloseServo;
 
     /*
-    // Webcam Servo Init
-    private CRServo camServo;
     // April Tag Init
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
@@ -67,7 +65,7 @@ public class Test extends LinearOpMode {
         drivingMotors[0].setDirection(DcMotor.Direction.REVERSE);
         drivingMotors[2].setDirection(DcMotor.Direction.REVERSE);
 
-        float computedDistance = distance * cm;
+        float computedDistance = distance * feet;
 
         while (computedDistance > 1) {
             for (DcMotor i : drivingMotors){
@@ -91,6 +89,14 @@ public class Test extends LinearOpMode {
             }
             computedAngle -= 1;
         }
+        
+        while (computedAngle < -1) {
+            for (DcMotor i : drivingMotors){
+                i.setPower(-1);
+            }
+            computedAngle += 1;
+        }
+        
         for (DcMotor i : drivingMotors){
             i.setPower(computedAngle);
         }
@@ -104,8 +110,7 @@ public class Test extends LinearOpMode {
      * 3: arm down
      */
     
-    /*
-    private Float armPos(float lastPos, float goalPos) {
+    /*private Float armPos(float goalPos) {
         Float current;
         Float goal;
         Float clawTarget;
@@ -145,8 +150,7 @@ public class Test extends LinearOpMode {
             }
             clawCloseServo.setPower(-1);
         }
-    }
-    */
+    }*/
 
     // Code Running ------------------------------------------------------
     @Override
@@ -190,13 +194,61 @@ public class Test extends LinearOpMode {
         // Set to starting positions -------------------------------------
         //clawRotServo.setPosition(0.94f);
 
+        // Set path ------------------------------------------------------
+        String [][] path = {
+            {"f", "2.5"},
+            {"l", "90"},
+            {"r", "180"},
+            {"f", "6.5"},
+            {"c", "0"}
+        };
+
         // Ready to start ------------------------------------------------
         telemetry.addData(">", "Ready to start");
+        telemetry.update();
         waitForStart();
         time.reset();
 
         if (opModeIsActive()){
-            forward(10);
+            int i = 0;
+            // Interates through path array to move bot
+            while (i < path.length) {
+                String cmd = path[i][0];
+                float amt = Float.parseFloat(path[i][1]);
+                telemetry.addData("step", amt);
+                telemetry.update();
+                
+                // Interpret next step
+                if (cmd == "f"){ // front
+                    forward(amt);
+                } else if (cmd == "r"){ // right rotate
+                    rotate(-1 * amt);
+                } else if (cmd == "l"){ // left rotate
+                    rotate(amt);
+                } else if (cmd == "c") { // activate the claw
+                    // Move claw up
+                    int j = 0;
+                    while (j < 100000) {
+                        clawMotor.setPower(1);
+                        j += 1;
+                    }
+                    // Open, then close claw
+                    clawMotor.setPower(0);
+                    Double end = time.seconds() + 2;
+                    while (time.seconds() <= end) {
+                        clawCloseServo.setPower(1);
+                    }
+                    clawCloseServo.setPower(-1);
+                    // Claw back down
+                    while (j > 0) {
+                        clawMotor.setPower(-1);
+                        j -= 1;
+                    }
+                    clawMotor.setPower(0);
+                }
+                
+                i += 1; // Next step
+            }
         }
     }
 }
