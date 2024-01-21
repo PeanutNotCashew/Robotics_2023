@@ -21,6 +21,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import java.util.List;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -35,10 +37,10 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-@TeleOp
-public class Test extends LinearOpMode {
+@Autonomous
+public class RedClose extends LinearOpMode {
     // Distance conversion
-    Float degrees = 315f;
+    Float degrees = 400f;
     Float feet = 15500f;
     // Wheel Init
     private DcMotor[] drivingMotors = new DcMotor[4];
@@ -51,8 +53,8 @@ public class Test extends LinearOpMode {
     // April Tag Init
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
-    // Misc Init
     */
+    // Misc Init
     private ElapsedTime time = new ElapsedTime();
 
     private void halt() {
@@ -63,7 +65,9 @@ public class Test extends LinearOpMode {
 
     private void forward(float distance){
         drivingMotors[0].setDirection(DcMotor.Direction.REVERSE);
+        drivingMotors[1].setDirection(DcMotor.Direction.FORWARD);
         drivingMotors[2].setDirection(DcMotor.Direction.REVERSE);
+        drivingMotors[3].setDirection(DcMotor.Direction.FORWARD);
 
         float computedDistance = distance * feet;
 
@@ -73,13 +77,21 @@ public class Test extends LinearOpMode {
             }
             computedDistance -= 1;
         }
+        while (computedDistance < -1) {
+            for (DcMotor i : drivingMotors){
+                i.setPower(-1);
+            }
+            computedDistance += 1;
+        }
         halt();
     }
 
     // Positive to go right
     private void rotate(float angle){
         drivingMotors[0].setDirection(DcMotor.Direction.FORWARD);
+        drivingMotors[1].setDirection(DcMotor.Direction.FORWARD);
         drivingMotors[2].setDirection(DcMotor.Direction.FORWARD);
+        drivingMotors[3].setDirection(DcMotor.Direction.FORWARD);
 
         float computedAngle = angle * degrees;
 
@@ -101,6 +113,36 @@ public class Test extends LinearOpMode {
             i.setPower(computedAngle);
         }
         halt();
+    }
+    
+    private void strafe(float distance){
+        drivingMotors[0].setDirection(DcMotor.Direction.FORWARD);
+        drivingMotors[1].setDirection(DcMotor.Direction.REVERSE);
+        drivingMotors[2].setDirection(DcMotor.Direction.REVERSE);
+        drivingMotors[3].setDirection(DcMotor.Direction.FORWARD);
+
+        float computedDistance = distance * feet;
+
+        while (computedDistance > 1) {
+            for (DcMotor i : drivingMotors){
+                i.setPower(1);
+            }
+            computedDistance -= 1;
+        }
+        while (computedDistance < -1) {
+            for (DcMotor i : drivingMotors){
+                i.setPower(-1);
+            }
+            computedDistance += 1;
+        }
+        halt();
+    }
+    
+    private void pause (float seconds) {
+        Double end = time.seconds() + seconds;
+        while (time.seconds() <= end) {
+            // Do nothing
+        }
     }
 
     /*
@@ -176,7 +218,7 @@ public class Test extends LinearOpMode {
         // Universal wheel properties
         for (DcMotor i : drivingMotors){
             // Tells motors to run based on power level, not velocity
-            i.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            i.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             // Attempts to turn motor not resisted
             i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
@@ -196,11 +238,12 @@ public class Test extends LinearOpMode {
 
         // Set path ------------------------------------------------------
         String [][] path = {
-            {"f", "2.5"},
-            {"l", "90"},
-            {"r", "180"},
-            {"f", "6.5"},
             {"c", "0"}
+            /*{"f", "2.5"},
+            {"r", "90"},
+            {"f", "8.5"},
+            {"c", "0"},
+            {"s", "2"}*/
         };
 
         // Ready to start ------------------------------------------------
@@ -225,6 +268,10 @@ public class Test extends LinearOpMode {
                     rotate(-1 * amt);
                 } else if (cmd == "l"){ // left rotate
                     rotate(amt);
+                } else if (cmd == "s"){ // strafe
+                    strafe(amt);
+                } else if (cmd == "p"){ // wait
+                    pause(amt);
                 } else if (cmd == "c") { // activate the claw
                     // Move claw up
                     int j = 0;
@@ -234,11 +281,11 @@ public class Test extends LinearOpMode {
                     }
                     // Open, then close claw
                     clawMotor.setPower(0);
-                    Double end = time.seconds() + 2;
-                    while (time.seconds() <= end) {
-                        clawCloseServo.setPower(1);
-                    }
+                    
+                    clawCloseServo.setPower(1);
+                    pause(1);
                     clawCloseServo.setPower(-1);
+                    
                     // Claw back down
                     while (j > 0) {
                         clawMotor.setPower(-1);
