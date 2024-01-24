@@ -24,7 +24,6 @@ import java.util.List;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 // Motors and Servos
@@ -36,11 +35,15 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+// IMU
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.hardware.IMU;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 @Autonomous
-public class RedClose extends LinearOpMode {
+public class Auto_Default extends LinearOpMode {
     // Distance conversion
-    Float degrees = 400f;
     Float feet = 15500f;
     // Wheel Init
     private DcMotor[] drivingMotors = new DcMotor[4];
@@ -54,7 +57,9 @@ public class RedClose extends LinearOpMode {
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
     */
+    
     // Misc Init
+    private IMU imu;
     private ElapsedTime time = new ElapsedTime();
 
     private void halt() {
@@ -92,25 +97,22 @@ public class RedClose extends LinearOpMode {
         drivingMotors[1].setDirection(DcMotor.Direction.FORWARD);
         drivingMotors[2].setDirection(DcMotor.Direction.FORWARD);
         drivingMotors[3].setDirection(DcMotor.Direction.FORWARD);
-
-        float computedAngle = angle * degrees;
-
-        while (computedAngle > 1) {
-            for (DcMotor i : drivingMotors){
-                i.setPower(1);
-            }
-            computedAngle -= 1;
-        }
         
-        while (computedAngle < -1) {
+        imu.resetYaw();
+        double botHeading = 0;
+        
+        if (botHeading > angle) {
             for (DcMotor i : drivingMotors){
                 i.setPower(-1);
             }
-            computedAngle += 1;
+        } else {
+            for (DcMotor i : drivingMotors){
+                i.setPower(1);
+            }
         }
         
-        for (DcMotor i : drivingMotors){
-            i.setPower(computedAngle);
+        while (Math.round(botHeading) != angle) {
+            botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
         }
         halt();
     }
@@ -211,7 +213,7 @@ public class RedClose extends LinearOpMode {
         camServo = hardwareMap.get(CRServo.class, "camera");
         aprilTag = AprilTagProcessor.easyCreateWithDefaults();
         visionPortal = VisionPortal.easyCreateWithDefaults(
-            hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
+        hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
         */
 
         // Setting motor and servo settings ------------------------------
@@ -232,18 +234,28 @@ public class RedClose extends LinearOpMode {
         clawCloseServo.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BREAK);
         clawCloseServo.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         */
+        
+        // Setting IMU (gyroscope) orientation params
+        imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters imuParameters = new IMU.Parameters(
+            new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD
+            )
+        );
+        imu.initialize(imuParameters);
 
         // Set to starting positions -------------------------------------
         //clawRotServo.setPosition(0.94f);
 
         // Set path ------------------------------------------------------
         String [][] path = {
-            {"c", "0"}
-            /*{"f", "2.5"},
-            {"r", "90"},
-            {"f", "8.5"},
+            {"f", "2.5"},
+            {"r", "90"}, // "l" if blue
+            {"f", "8.5"}, // "4" if close
             {"c", "0"},
-            {"s", "2"}*/
+            {"s", "1.5"}, // "-2" if blue
+            {"w", "1"}
         };
 
         // Ready to start ------------------------------------------------
