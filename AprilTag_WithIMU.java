@@ -39,8 +39,9 @@ public class AprilTag_WithIMU extends LinearOpMode {
     // Misc Init
     private IMU imu;
     private ElapsedTime time = new ElapsedTime();
-    static final boolean BLUE_SIDE = true;
+    static final boolean BLUE_SIDE = true; // Starting position
     static final boolean CLOSE = true;
+    static final boolean OUTSIDE = false; // Ending position
     
     // Distance conversion
     Float feet = 15500f;
@@ -73,7 +74,7 @@ public class AprilTag_WithIMU extends LinearOpMode {
         // Repeatedly look for april tag
         "at", "s", "at", "s", "at",
         // End portion: Leave
-        "s"
+        "s", "c"
     }
 
     float [] pathAmts = {
@@ -83,8 +84,8 @@ public class AprilTag_WithIMU extends LinearOpMode {
         -2, -90  3,
         // Repeatedly look for april tag
         0, 1, 0, 1, 0,
-        // End portion: Leave
-        1
+        // End portion: Leave & drop
+        1, 1
     };
     
     private void pause (int seconds) {
@@ -356,7 +357,11 @@ public class AprilTag_WithIMU extends LinearOpMode {
         clawRotServo.setPosition(0.8f);
         clawCloseServo.setPower(1);
 
-        // Set side-based settings ---------------------------------------------
+        // Set pathing settings ------------------------------------------------
+        if (OUTSIDE) {
+            pathAmts[13] = -3;
+        }
+
         if (BLUE_SIDE) {
             goalAprilTag = 2;
             gamePiece = "blue_element";
@@ -366,7 +371,7 @@ public class AprilTag_WithIMU extends LinearOpMode {
         } else {
             goalAprilTag = 5;
             gamePiece = "red_element";
-            for (int i = 5; i < pathAmts.length(); i++) { // Reverse direction
+            for (int i = 5; i < (pathAmts.length() - 1); i++) { // Reverse direction
                 pathAmts[i] *= -1;
             }
             if (!CLOSE) {
@@ -406,9 +411,11 @@ public class AprilTag_WithIMU extends LinearOpMode {
             // Find april tag position, then place pixel
             } else if (cmd == "at"){
                 if (toBoard(goalAprilTag)) {
-                    pathCmds[8] = "n/a";
+                    // Cancel other april tag checks
                     pathCmds[10] = "n/a";
                     pathCmds[12] = "n/a";
+                    // Cancel just-in-case pixel placement
+                    pathCmds[14] = "n/a";
                 }
             
             // Find gamepiece position
