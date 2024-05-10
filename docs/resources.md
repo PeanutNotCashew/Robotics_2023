@@ -3,9 +3,11 @@
 ---
 
 # Tutorials
-All robotics code must be written in Java. As such, new coders should review at least one Java tutorial. Returning coders only need to refresh on Java syntax.  
+All robotics code must be written in Java. As such, knowledge of Java and its syntax is essential. The following tutorials are good for self studying Java or as reference for Java methods and syntax.
 
-This coming robotics season, I would like to use Git to manage our code. Git is a common version control system that keeps track of the changes made to code. Coders who do not know how to use Git should follow the Learn Git Branching tutorial.
+Git is a common version control system that helps keep track of and organize the changes made to code. The Learn Git Branching tutorial is an interactive Git tutorial that I highly recommend.
+
+Documentation for FIRST methods are also linked for easy reference. Reading the documentation is often important to understand how a method is used, especially since the documentation on the [actual FIRST website](https://www.firstinspires.org/resource-library/ftc/technology-information-and-resources) is difficult to navigate. 
 
 ## Java
 - [The Official Java Tutorial](https://docs.oracle.com/javase/tutorial/): At least the "Language Basics" lesson in the "Learning the Java Module" should be read if following this tutorial.  
